@@ -9,41 +9,102 @@ namespace WindowsFormsLabs1
 {
     public partial class Form1 : Form
     {
-        public double allTime = 0;
-        private void RunSolutionThread()
-        {
-            Solution solution = new Solution();
-            double result = solution.Count().TotalMilliseconds;
-            allTime += result;
-            label1.Text = $"Общее время:\n{allTime} мс.";
-        } 
+        private static object lockObject = new object();
+        private static int threadCounter = 0;
+        private static int taskCounter = 0;
+        private static int totalThreads = 100;
         private void StartThreads()
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < totalThreads; i++)
             {
-                Thread thread = new Thread(new ThreadStart(RunSolutionThread));
-                thread.Start();
+                Thread thread = new Thread(RunSolution);
+                thread.Start(i + 1);
             }
         }
-        private async Task<List<(double[], double[], double, int[])>> StartTasksAsync()
-        {
-            List<Task<(double[], double[], double, int[])>> tasks = new List<Task<(double[], double[], double, int[])>>();
 
-            for (int i = 0; i < 100; i++)
+        private void RunSolution(object threadNumber)
+        {
+            Solution solution = new Solution();
+            int startNum = (int)threadNumber;
+
+            var result = solution.SortAndReturnResults();
+
+            lock (lockObject)
+            {
+                int endNum = GetNextThreadNumber();
+                if (startNum == 1)
+                    endNum = 1;
+                UpdateDataGridView(result.Item1, result.Item2, startNum, endNum);
+            }
+        }
+
+        private int GetNextThreadNumber()
+        {
+            return Interlocked.Increment(ref threadCounter);
+        }
+
+        private void UpdateDataGridView(double executionTime, int sysNum, int startNum, int endNum)
+        {
+            if (dataGridView1.InvokeRequired)
+            {
+                dataGridView1.Invoke(new MethodInvoker(delegate {
+                    dataGridView1.Rows.Add(
+                        startNum,
+                        endNum,
+                        executionTime,
+                        sysNum
+                    );
+                }));
+            }
+            else
+            {
+                dataGridView1.Rows.Add(
+                    startNum,
+                    endNum,
+                    executionTime,
+                    sysNum
+                );
+            }
+        }
+        private async Task StartTasksAsync()
+        {
+            List<Task<(double, int, int)>> tasks = new List<Task<(double, int, int)>>();
+
+            for (int i = 0; i < totalThreads; i++)
             {
                 tasks.Add(RunSolutionAsync());
             }
 
-            await Task.WhenAll(tasks);
+            var results = await Task.WhenAll(tasks);
 
-            return tasks.Select(t => t.Result).ToList();
+            lock (lockObject)
+            {
+                foreach (var result in results)
+                {
+                    int endNum = GetNextThreadNumber() + 1;
+                    if (result.Item3 == 1)
+                        endNum = 1;
+                    UpdateDataGridView(result.Item1, result.Item3, endNum, result.Item3);
+                }
+            }
         }
 
-        private async Task<(double[], double[], double, int[])> RunSolutionAsync()
+        private async Task<(double, int, int)> RunSolutionAsync()
+        {
+            return await Task.Run(() => RunSolution());
+        }
+
+        private (double, int, int) RunSolution()
         {
             Solution solution = new Solution();
-            return await Task.Run(() => solution.SortAndReturnResults());
+
+            var result = solution.SortAndReturnResults();
+
+            int startNum = Interlocked.Increment(ref taskCounter);
+
+            return (result.Item1, result.Item2, startNum);
         }
+
         public Form1()
         {
             InitializeComponent();
@@ -56,8 +117,11 @@ namespace WindowsFormsLabs1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            label1.Text= "Общее время: ";
-            allTime = 0;
+            label1.Text = "Общее время: ";
+            dataGridView1.Rows.Clear();
+            dataGridView2.Rows.Clear();
+            taskCounter = 0;
+            threadCounter = 0;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -66,33 +130,60 @@ namespace WindowsFormsLabs1
         }
         private async void button3_Click(object sender, EventArgs e)
         {
-            List<(double[], double[], double, int[])> results = await StartTasksAsync();
-
-            dataGridView1.Rows.Clear();
-
-            foreach (var result in results)
-            {
-                dataGridView1.Rows.Add(
-                    string.Join(", ", result.Item1),
-                    string.Join(", ", result.Item2),
-                    result.Item3,
-                    string.Join(", ", result.Item4)
-                );
-            }
+            await StartTasksAsync();
         }
         private void button4_Click(object sender, EventArgs e)
         {
+            dataGridView2.Rows.Clear();
 
-        }
+            // Получить минимальное и максимальное время выполнения
+            double minExecutionTime = double.MaxValue;
+            double maxExecutionTime = double.MinValue;
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                double executionTime = Convert.ToDouble(row.Cells[2].Value);
+                minExecutionTime = Math.Min(minExecutionTime, executionTime);
+                maxExecutionTime = Math.Max(maxExecutionTime, executionTime);
+            }
 
-        }
+            // Вычислить интервалы и их количество
+            double intervalSize = (maxExecutionTime - minExecutionTime) / 10;
+            double currentIntervalStart = minExecutionTime;
+            double currentIntervalEnd = minExecutionTime + intervalSize;
 
-        private void dataGridView2_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
+            for (int i = 0; i < 10; i++)
+            {
+                int amount = 0;
 
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                {
+                    double executionTime = Convert.ToDouble(row.Cells[2].Value);
+
+                    if (executionTime >= currentIntervalStart && executionTime <= currentIntervalEnd)
+                    {
+                        amount++;
+                    }
+                }
+
+                string piece = $"{currentIntervalStart:F0}-{currentIntervalEnd:F0}";
+                dataGridView2.Rows.Add(piece, amount);
+
+                currentIntervalStart = currentIntervalEnd + 1;
+                currentIntervalEnd += intervalSize;
+            }
+
+            double totalExecutionTime = 0;
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                double executionTime = Convert.ToDouble(row.Cells[2].Value);
+                totalExecutionTime += executionTime;
+            }
+            label1.Text = $"Общее время:\n{totalExecutionTime} мс";
+
+            double averageExecutionTime = totalExecutionTime / dataGridView1.Rows.Count;
+            dataGridView2.Rows.Add("Среднее", 0);
+            dataGridView2.Rows[10].Cells[1].Value = averageExecutionTime;
         }
     }
 }

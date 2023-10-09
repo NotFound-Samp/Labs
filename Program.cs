@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -74,14 +75,12 @@ namespace WindowsFormsLabs1
             return sysNum;
         }
 
-        public (double[], double[], double, int[]) SortAndReturnResults()
+        public (double, int) SortAndReturnResults()
         {
-            double[] Array = CreateNum();
-            double[] sortedArray = GnomeSort((double[])Array.Clone()); // Используем копию массива
             double executionTime = Count().TotalMilliseconds;
-            int[] sysNum = CreateSysNum();
+            int sysNum = Thread.CurrentThread.ManagedThreadId;
 
-            return (Array, sortedArray, executionTime, sysNum);
+            return (executionTime, sysNum);
         }
 
         public TimeSpan Count()

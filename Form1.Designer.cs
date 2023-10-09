@@ -41,6 +41,8 @@
             this.EndNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ExecutionTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.SysNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Piece = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Amount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataSet1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataSet2)).BeginInit();
@@ -65,7 +67,6 @@
             this.dataGridView1.RowTemplate.Height = 24;
             this.dataGridView1.Size = new System.Drawing.Size(498, 563);
             this.dataGridView1.TabIndex = 0;
-            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
             // button1
             // 
@@ -114,13 +115,15 @@
             // dataGridView2
             // 
             this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView2.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Piece,
+            this.Amount});
             this.dataGridView2.Location = new System.Drawing.Point(516, 88);
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.RowHeadersWidth = 51;
             this.dataGridView2.RowTemplate.Height = 24;
-            this.dataGridView2.Size = new System.Drawing.Size(240, 563);
+            this.dataGridView2.Size = new System.Drawing.Size(284, 563);
             this.dataGridView2.TabIndex = 5;
-            this.dataGridView2.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView2_CellContentClick);
             // 
             // label1
             // 
@@ -137,34 +140,48 @@
             this.StartNum.HeaderText = "StartNum";
             this.StartNum.MinimumWidth = 6;
             this.StartNum.Name = "StartNum";
-            this.StartNum.Width = 110;
+            this.StartNum.Width = 80;
             // 
             // EndNum
             // 
             this.EndNum.HeaderText = "EndNum";
             this.EndNum.MinimumWidth = 6;
             this.EndNum.Name = "EndNum";
-            this.EndNum.Width = 110;
+            this.EndNum.Width = 80;
             // 
             // ExecutionTime
             // 
             this.ExecutionTime.HeaderText = "ExecutionTime";
             this.ExecutionTime.MinimumWidth = 6;
             this.ExecutionTime.Name = "ExecutionTime";
-            this.ExecutionTime.Width = 110;
+            this.ExecutionTime.Width = 80;
             // 
             // SysNum
             // 
             this.SysNum.HeaderText = "SysNum";
             this.SysNum.MinimumWidth = 6;
             this.SysNum.Name = "SysNum";
-            this.SysNum.Width = 110;
+            this.SysNum.Width = 80;
+            // 
+            // Piece
+            // 
+            this.Piece.HeaderText = "Piece";
+            this.Piece.MinimumWidth = 6;
+            this.Piece.Name = "Piece";
+            this.Piece.Width = 80;
+            // 
+            // Amount
+            // 
+            this.Amount.HeaderText = "Amount";
+            this.Amount.MinimumWidth = 6;
+            this.Amount.Name = "Amount";
+            this.Amount.Width = 80;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(760, 663);
+            this.ClientSize = new System.Drawing.Size(812, 663);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.dataGridView2);
             this.Controls.Add(this.button4);
@@ -199,6 +216,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn EndNum;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExecutionTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn SysNum;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Piece;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Amount;
     }
 }
 
