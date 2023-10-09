@@ -16,7 +16,7 @@ namespace WindowsFormsLabs1
             double result = solution.Count().TotalMilliseconds;
             allTime += result;
             label1.Text = $"Общее время:\n{allTime} мс.";
-        }
+        } 
         private void StartThreads()
         {
             for (int i = 0; i < 100; i++)
