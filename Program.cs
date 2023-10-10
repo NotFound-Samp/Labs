@@ -40,7 +40,7 @@ namespace WindowsFormsLabs1
             array[j] = temp;
         }
 
-        static double[] GnomeSort(double[] inArray)
+        static void GnomeSort(double[] inArray)
         {
             int i = 1;
             int j = 2;
@@ -62,17 +62,6 @@ namespace WindowsFormsLabs1
                     }
                 }
             }
-            return inArray; // Вернем отсортированный массив
-        }
-
-        static int[] CreateSysNum()
-        {
-            int[] sysNum = new int[17000];
-            for (int k = 0; k < 17000; k++)
-            {
-                sysNum[k] = rnd.Next(100);
-            }
-            return sysNum;
         }
 
         public (double, int) SortAndReturnResults()
@@ -87,8 +76,7 @@ namespace WindowsFormsLabs1
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            double[] Array = CreateNum();
-            GnomeSort((double[])Array.Clone()); // Используем копию массива
+            GnomeSort(CreateNum());
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;
             return ts;

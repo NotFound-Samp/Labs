@@ -191,7 +191,6 @@
             this.Controls.Add(this.dataGridView1);
             this.Name = "Form1";
             this.Text = "Labs2";
-            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataSet1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataSet2)).EndInit();

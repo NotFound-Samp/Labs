@@ -43,6 +43,11 @@ namespace WindowsFormsLabs1
             return Interlocked.Increment(ref threadCounter);
         }
 
+        private int GetNextTaskNumber()
+        {
+            return Interlocked.Increment(ref taskCounter);
+        }
+
         private void UpdateDataGridView(double executionTime, int sysNum, int startNum, int endNum)
         {
             if (dataGridView1.InvokeRequired)
@@ -81,10 +86,10 @@ namespace WindowsFormsLabs1
             {
                 foreach (var result in results)
                 {
-                    int endNum = GetNextThreadNumber() + 1;
+                    int endNum = GetNextTaskNumber();
                     if (result.Item3 == 1)
                         endNum = 1;
-                    UpdateDataGridView(result.Item1, result.Item3, endNum, result.Item3);
+                    UpdateDataGridView(result.Item1, result.Item2, result.Item3, endNum);
                 }
             }
         }
@@ -100,7 +105,7 @@ namespace WindowsFormsLabs1
 
             var result = solution.SortAndReturnResults();
 
-            int startNum = Interlocked.Increment(ref taskCounter);
+            int startNum = GetNextTaskNumber();
 
             return (result.Item1, result.Item2, startNum);
         }
@@ -108,11 +113,6 @@ namespace WindowsFormsLabs1
         public Form1()
         {
             InitializeComponent();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -136,7 +136,6 @@ namespace WindowsFormsLabs1
         {
             dataGridView2.Rows.Clear();
 
-            // Получить минимальное и максимальное время выполнения
             double minExecutionTime = double.MaxValue;
             double maxExecutionTime = double.MinValue;
 
@@ -147,7 +146,6 @@ namespace WindowsFormsLabs1
                 maxExecutionTime = Math.Max(maxExecutionTime, executionTime);
             }
 
-            // Вычислить интервалы и их количество
             double intervalSize = (maxExecutionTime - minExecutionTime) / 10;
             double currentIntervalStart = minExecutionTime;
             double currentIntervalEnd = minExecutionTime + intervalSize;
