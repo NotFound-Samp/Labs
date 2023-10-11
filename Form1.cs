@@ -81,15 +81,13 @@ namespace WindowsFormsLabs1
             }
 
             var results = await Task.WhenAll(tasks);
+            int endNum = 1;
 
             lock (lockObject)
             {
                 foreach (var result in results)
                 {
-                    int endNum = GetNextTaskNumber();
-                    if (result.Item3 == 1)
-                        endNum = 1;
-                    UpdateDataGridView(result.Item1, result.Item2, result.Item3, endNum);
+                    UpdateDataGridView(result.Item1, result.Item2, result.Item3, endNum++);
                 }
             }
         }
