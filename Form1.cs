@@ -9,45 +9,44 @@ namespace WindowsFormsLabs1
 {
     public partial class Form1 : Form
     {
-        private static object lockObject = new object();
-        private static int threadCounter = 0;
-        private static int taskCounter = 0;
-        private static int totalThreads = 100;
+        Solution solution = new Solution();
+        private static int endTaskCounter = 0;
+        private static int endThreadCounter = 0;
+        readonly static int totalThreads = 100;
+
         private void StartThreads()
         {
-            for (int i = 0; i < totalThreads; i++)
+            for (int i = 1; i <= totalThreads; i++)
             {
                 Thread thread = new Thread(RunSolution);
-                thread.Start(i + 1);
+                thread.Start(i);
             }
         }
-
         private void RunSolution(object threadNumber)
         {
-            Solution solution = new Solution();
-            int startNum = (int)threadNumber;
-
             var result = solution.SortAndReturnResults();
-
-            lock (lockObject)
+            UpdateDataGridView(result.Item1, result.Item2, (int)threadNumber, Interlocked.Increment(ref endThreadCounter));
+        }
+        private async Task<(double, int, int, int)> RunSolutionAsync(int startNum)
+        {
+            return await Task.Run(() =>
             {
-                int endNum = GetNextThreadNumber();
-                if (startNum == 1)
-                    endNum = 1;
-                UpdateDataGridView(result.Item1, result.Item2, startNum, endNum);
-            }
+                var result = solution.SortAndReturnResults();
+                return (result.Item1, result.Item2, startNum, Interlocked.Increment(ref endTaskCounter));
+            });
         }
-
-        private int GetNextThreadNumber()
+        private async Task StartTasksAsync()
         {
-            return Interlocked.Increment(ref threadCounter);
-        }
+            List<Task<(double, int, int, int)>> tasks = new List<Task<(double, int, int, int)>>();
 
-        private int GetNextTaskNumber()
-        {
-            return Interlocked.Increment(ref taskCounter);
-        }
+            for (int i = 1; i <= totalThreads; i++)
+                tasks.Add(RunSolutionAsync(i));
 
+            var results = await Task.WhenAll(tasks);
+
+            foreach (var result in results)
+                UpdateDataGridView(result.Item1, result.Item2, result.Item3, result.Item4);
+        }
         private void UpdateDataGridView(double executionTime, int sysNum, int startNum, int endNum)
         {
             if (dataGridView1.InvokeRequired)
@@ -71,57 +70,18 @@ namespace WindowsFormsLabs1
                 );
             }
         }
-        private async Task StartTasksAsync()
-        {
-            List<Task<(double, int, int)>> tasks = new List<Task<(double, int, int)>>();
-
-            for (int i = 0; i < totalThreads; i++)
-            {
-                tasks.Add(RunSolutionAsync());
-            }
-
-            var results = await Task.WhenAll(tasks);
-            int endNum = 1;
-
-            lock (lockObject)
-            {
-                foreach (var result in results)
-                {
-                    UpdateDataGridView(result.Item1, result.Item2, result.Item3, endNum++);
-                }
-            }
-        }
-
-        private async Task<(double, int, int)> RunSolutionAsync()
-        {
-            return await Task.Run(() => RunSolution());
-        }
-
-        private (double, int, int) RunSolution()
-        {
-            Solution solution = new Solution();
-
-            var result = solution.SortAndReturnResults();
-
-            int startNum = GetNextTaskNumber();
-
-            return (result.Item1, result.Item2, startNum);
-        }
-
         public Form1()
         {
             InitializeComponent();
         }
-
         private void button1_Click(object sender, EventArgs e)
         {
             label1.Text = "Общее время: ";
+            endThreadCounter = 0;
+            endTaskCounter = 0;
             dataGridView1.Rows.Clear();
             dataGridView2.Rows.Clear();
-            taskCounter = 0;
-            threadCounter = 0;
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             StartThreads();
