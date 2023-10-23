@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -27,14 +27,6 @@ namespace WindowsFormsLabs1
             var result = solution.SortAndReturnResults();
             UpdateDataGridView(result.Item1, result.Item2, (int)threadNumber, Interlocked.Increment(ref endThreadCounter));
         }
-        private async Task<(double, int, int, int)> RunSolutionAsync(int startNum)
-        {
-            return await Task.Run(() =>
-            {
-                var result = solution.SortAndReturnResults();
-                return (result.Item1, result.Item2, startNum, Interlocked.Increment(ref endTaskCounter));
-            });
-        }
         private async Task StartTasksAsync()
         {
             List<Task<(double, int, int, int)>> tasks = new List<Task<(double, int, int, int)>>();
@@ -46,6 +38,14 @@ namespace WindowsFormsLabs1
 
             foreach (var result in results)
                 UpdateDataGridView(result.Item1, result.Item2, result.Item3, result.Item4);
+        }
+        private async Task<(double, int, int, int)> RunSolutionAsync(int startNum)
+        {
+            return await Task.Run(() =>
+            {
+                var result = solution.SortAndReturnResults();
+                return (result.Item1, result.Item2, startNum, Interlocked.Increment(ref endTaskCounter));
+            });
         }
         private void UpdateDataGridView(double executionTime, int sysNum, int startNum, int endNum)
         {
@@ -84,11 +84,27 @@ namespace WindowsFormsLabs1
         }
         private void button2_Click(object sender, EventArgs e)
         {
-            StartThreads();
+            Stopwatch totalStopwatch = new Stopwatch();
+            totalStopwatch.Start();
+
+            StartThreads(); 
+
+            totalStopwatch.Stop();
+
+            double totalTime = totalStopwatch.Elapsed.TotalMilliseconds;
+            label1.Text = $"Общее время:\n{totalTime} мс";
         }
         private async void button3_Click(object sender, EventArgs e)
         {
+            Stopwatch totalStopwatch = new Stopwatch();
+            totalStopwatch.Start();
+
             await StartTasksAsync();
+
+            totalStopwatch.Stop();
+
+            double totalTime = totalStopwatch.Elapsed.TotalMilliseconds;
+            label1.Text = $"Общее время:\n{totalTime} мс";
         }
         private void button4_Click(object sender, EventArgs e)
         {
@@ -135,7 +151,6 @@ namespace WindowsFormsLabs1
                 double executionTime = Convert.ToDouble(row.Cells[2].Value);
                 totalExecutionTime += executionTime;
             }
-            label1.Text = $"Общее время:\n{totalExecutionTime} мс";
 
             double averageExecutionTime = totalExecutionTime / dataGridView1.Rows.Count;
             dataGridView2.Rows.Add("Среднее", 0);
